@@ -4,7 +4,7 @@
 #include <pXest.h>
 #include <d4est_xyz_functions.h>
 #include <d4est_operators.h>
-#include <d4est_quadrature.h>
+/* #include <d4est_quadrature.h> */
 #include <d4est_field.h>
 
 #define MAX_DEGREE 8

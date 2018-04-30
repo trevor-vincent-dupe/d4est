@@ -20,7 +20,10 @@ int main(int argc, char *argv[])
   int proc_rank;
   MPI_Comm_size(mpicomm, &proc_size);
   MPI_Comm_rank(mpicomm, &proc_rank);
-  
+
+#ifdef D4EST_TEST
+  D4EST_ABORT("D4EST_TEST should not be defined");
+#endif
   
   // Initialize logging
   if (zlog_init("logging.conf") != 0)

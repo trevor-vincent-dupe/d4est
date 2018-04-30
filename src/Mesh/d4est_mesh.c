@@ -446,8 +446,7 @@ void
 d4est_mesh_compute_mortar_quadrature_quantities
 (
  p4est_t* p4est,
- p4est_ghost_t* ghost,
- d4est_element_data_t* ghost_data,
+ d4est_ghost_t* d4est_ghost,
  d4est_operators_t* d4est_ops,
  d4est_geometry_t* d4est_geom,
  d4est_quadrature_t* d4est_quad,
@@ -462,14 +461,14 @@ d4est_mesh_compute_mortar_quadrature_quantities
   d4est_mortars_compute_flux_on_local_elements
     (
      p4est,
-     ghost,
-     ghost_data,
+     d4est_ghost,
+     /* NULL, */
      d4est_ops,
      d4est_geom,
      d4est_quad,
      d4est_factors,
-     &flux_fcns,
-     EXCHANGE_GHOST_DATA /* might not be needed because it's done for size computations */
+     &flux_fcns
+     //EXCHANGE_GHOST_DATA /* might not be needed because it's done for size computations */
     );
 
 }
@@ -559,8 +558,8 @@ void
 d4est_mesh_compute_mortar_quadrature_sizes
 (
  p4est_t* p4est,
- p4est_ghost_t* ghost,
- d4est_element_data_t* ghost_data,
+ d4est_ghost_t* d4est_ghost,
+ /* d4est_element_data_t* ghost_data, */
  d4est_operators_t* d4est_ops,
  d4est_geometry_t* d4est_geom,
  d4est_quadrature_t* d4est_quad,
@@ -576,14 +575,14 @@ d4est_mesh_compute_mortar_quadrature_sizes
   d4est_mortars_compute_flux_on_local_elements
     (
      p4est,
-     ghost,
-     ghost_data,
+     d4est_ghost,
+     /* NULL,/\* ghost_data, *\/ */
      d4est_ops,
      d4est_geom,
      d4est_quad,
      d4est_factors,
-     &flux_fcns,
-     EXCHANGE_GHOST_DATA
+     &flux_fcns
+     /* EXCHANGE_GHOST_DATA */
     );
 }
 
@@ -1378,8 +1377,8 @@ d4est_mesh_local_sizes_t
 d4est_mesh_init_element_data
 (
  p4est_t* p4est,
- p4est_ghost_t* ghost,
- d4est_element_data_t* ghost_data,
+ d4est_ghost_t* ghost,
+ /* d4est_ghost_data_t* ghost_data, */
  d4est_operators_t* d4est_ops,
  d4est_geometry_t* d4est_geom,
  d4est_quadrature_t* d4est_quad,
@@ -1422,7 +1421,6 @@ d4est_mesh_init_element_data
         elem_data->mpi_rank = p4est->mpirank;
         elem_data->id = id_stride;
         elem_data->sqr_nodal_stride = sqr_nodal_stride;
-        /* elem_data->sqr_mortar_stride = sqr_mortar_stride; */
         elem_data->nodal_stride = nodal_stride;
         elem_data->quad_stride = quad_stride;
 
@@ -1468,7 +1466,7 @@ d4est_mesh_init_element_data
       (
        p4est,
        ghost,
-       ghost_data,
+       /* NULL, */
        d4est_ops,
        d4est_geom,
        d4est_quad,
@@ -1476,7 +1474,6 @@ d4est_mesh_init_element_data
        &local_sizes
       );
   
-  /* local_sizes.local_sqr_nodes_invM = local_sqr_nodes_invM; */
   return local_sizes;
 }
 
@@ -1484,8 +1481,8 @@ void
 d4est_mesh_data_compute
 (
  p4est_t* p4est,
- p4est_ghost_t* ghost,
- d4est_element_data_t* ghost_data,
+ d4est_ghost_t* ghost,
+ /* d4est_element_data_t* ghost_data, */
  d4est_operators_t* d4est_ops,
  d4est_geometry_t* d4est_geom,
  d4est_quadrature_t* d4est_quad,
@@ -1621,7 +1618,7 @@ d4est_mesh_data_compute
     (
      p4est,
      ghost,
-     ghost_data,
+     /* ghost_data, */
      d4est_ops,
      d4est_geom,
      d4est_quad,
@@ -1712,8 +1709,8 @@ int
 d4est_mesh_update
 (
  p4est_t* p4est,
- p4est_ghost_t* ghost,
- void* ghost_data,
+ d4est_ghost_t* d4est_ghost,
+ /* void* ghost_data, */
  d4est_operators_t* d4est_ops,
  d4est_geometry_t* d4est_geom,
  d4est_quadrature_t* d4est_quad,
@@ -1727,7 +1724,8 @@ d4est_mesh_update
 {
   d4est_mesh_local_sizes_t local_sizes =
     d4est_mesh_init_element_data(p4est,
-                                 ghost, ghost_data,
+                                 d4est_ghost,
+                                 /* ghost_data, */
                                  d4est_ops,
                                  d4est_geom,
                                  d4est_quad,
@@ -1741,8 +1739,8 @@ d4est_mesh_update
     {
       d4est_quadrature_reinit(
                               p4est,
-                              ghost,
-                              ghost_data,
+                              /* d4est_ghost, */
+                              /* ghost_data, */
                               d4est_ops,
                               d4est_geom,
                               d4est_quad
@@ -1761,8 +1759,8 @@ d4est_mesh_update
       d4est_mesh_data_compute
         (
          p4est,
-         ghost,
-         ghost_data,
+         d4est_ghost,
+         /* ghost_data, */
          d4est_ops,
          d4est_geom,
          d4est_quad,
@@ -1960,13 +1958,12 @@ d4est_mesh_get_local_nodes_callback
 
 int d4est_mesh_get_ghost_nodes
 (
- p4est_ghost_t* ghost,
- d4est_element_data_t* ghost_data
+ d4est_ghost_t* d4est_ghost
 )
 {
   int ghost_nodes = 0;
-  for (int gid = 0; gid < ghost->ghosts.elem_count; gid++){
-    ghost_nodes += d4est_lgl_get_nodes((P4EST_DIM),ghost_data[gid].deg);
+  for (int gid = 0; gid < d4est_ghost->ghost->ghosts.elem_count; gid++){
+    ghost_nodes += d4est_lgl_get_nodes((P4EST_DIM),d4est_ghost->ghost_elements[gid].deg);
   }
   return ghost_nodes;
 }
@@ -2243,4 +2240,38 @@ d4est_mesh_interpolate_at_tree_coord
     }
   data.err = 1;
   return data;
+}
+
+
+int 
+d4est_mesh_is_it_a_ghost_element
+(
+ p4est_t* p4est,
+ d4est_element_data_t* ed
+){
+  return (p4est->mpirank != ed->mpi_rank);
+}
+
+double*
+d4est_mesh_get_field_on_element
+(
+ p4est_t* p4est,
+ d4est_element_data_t* ed,
+ d4est_ghost_data_t* d4est_ghost_data,
+ double* field,
+ int local_nodes,
+ int which_field
+)
+{
+  int is_it_ghost = d4est_mesh_is_it_a_ghost_element(p4est,ed);
+  D4EST_ASSERT(which_field >= 0);
+  if (is_it_ghost && d4est_ghost_data == NULL){
+    D4EST_ABORT("need d4est_ghost_data != NULL if element is ghost");
+  }
+  if(is_it_ghost){
+    return d4est_ghost_data_get_field_on_element(ed,which_field,d4est_ghost_data);
+  }
+  else{
+    return &field[which_field*local_nodes + ed->nodal_stride];
+  }
 }

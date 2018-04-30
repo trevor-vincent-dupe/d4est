@@ -34,8 +34,7 @@ void
 problem_init
 (
  p4est_t* p4est,
- p4est_ghost_t** ghost,
- d4est_element_data_t** ghost_data,
+ d4est_ghost_t** d4est_ghost,
  d4est_operators_t* d4est_ops,
  d4est_geometry_t* d4est_geom,
  d4est_quadrature_t* d4est_quad,
@@ -122,11 +121,18 @@ problem_init
     INIT_FIELD_ON_LOBATTO,
     NULL
   );
-    
+
+  d4est_field_type_t field_type = VOLUME_NODAL;
+  d4est_ghost_data_t* d4est_ghost_data = d4est_ghost_data_init(p4est,
+                                                               *d4est_ghost,
+                                                               &field_type,
+                                                               1);
+  
+  
   d4est_poisson_build_rhs_with_strong_bc(
     p4est,
-    *ghost,
-    *ghost_data,
+    *d4est_ghost,
+    d4est_ghost_data,
     d4est_ops,
     d4est_geom,
     d4est_quad,
@@ -136,7 +142,8 @@ problem_init
     prob_vecs.rhs,
     poisson_sinx_rhs_fcn,
     INIT_FIELD_ON_LOBATTO,
-    &ctx
+    &ctx,
+    0
   );
 
 
@@ -215,8 +222,8 @@ problem_init
        p4est,
        &prob_vecs,
        &prob_fcns,
-       ghost,
-       ghost_data,
+       d4est_ghost,
+       &d4est_ghost_data,
        d4est_ops,
        d4est_geom,
        d4est_quad,
@@ -300,8 +307,8 @@ problem_init
 
       d4est_amr_step(
         p4est,
-        ghost,
-        ghost_data,
+        d4est_ghost,
+        &d4est_ghost_data,
         d4est_ops,
         d4est_amr,
         &prob_vecs.u,
@@ -313,11 +320,13 @@ problem_init
         zlog_info(c_default, "AMR refinement level %d of %d complete.", level + 1, d4est_amr->num_of_amr_steps);
     }
 
+    /* d4est_ghost_destroy(d4est_ghost); */
+    /* d4est_ghost_data_destroy(d4est_ghost_data); */
+    /* d4est_ghost_t* d4est_ghost = d4est_ghost_init(p4est); */
 
     prob_vecs.local_nodes = d4est_mesh_update(
       p4est,
-      *ghost,
-      *ghost_data,
+      *d4est_ghost,
       d4est_ops,
       d4est_geom,
       d4est_quad,
@@ -335,8 +344,8 @@ problem_init
     
     d4est_poisson_build_rhs_with_strong_bc(
       p4est,
-      *ghost,
-      *ghost_data,
+      *d4est_ghost,
+      d4est_ghost_data,
       d4est_ops,
       d4est_geom,
       d4est_quad,
@@ -346,13 +355,15 @@ problem_init
       prob_vecs.rhs,
       poisson_sinx_rhs_fcn,
       INIT_FIELD_ON_LOBATTO,
-      &ctx
+      &ctx,
+      0
     );
   }
 
   if (p4est->mpirank == 0)
     zlog_info(c_default, "Finishing up. Starting garbage collection...");
-    
+
+  d4est_ghost_data_destroy(d4est_ghost_data);
   d4est_amr_destroy(d4est_amr);
   d4est_poisson_flux_destroy(flux_data_for_apply_lhs);
   d4est_poisson_flux_destroy(flux_data_for_build_rhs);

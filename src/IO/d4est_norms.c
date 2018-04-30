@@ -171,66 +171,42 @@ d4est_norms_linear_fit_destroy
   
   - TODO: Add definition
 */
-double
-d4est_norms_fcn_energy
-(
-  double *field_value_errors,
-  int num_nodes_local,
-  void *norm_fcn_ctx
-)
-{
-  d4est_norms_fcn_energy_ctx_t *ctx = norm_fcn_ctx;
+/* double */
+/* d4est_norms_fcn_energy */
+/* ( */
+/*   double *field_value_errors, */
+/*   int num_nodes_local, */
+/*   void *norm_fcn_ctx */
+/* ) */
+/* { */
+/*   d4est_norms_fcn_energy_ctx_t *ctx = norm_fcn_ctx; */
   
-  double norm_sq_local = d4est_ip_energy_norm_compute(
-    ctx->p4est,
-    field_value_errors,
-    ctx->energy_norm_data,
-    ctx->ghost,
-    ctx->ghost_data,
-    ctx->d4est_ops,
-    ctx->d4est_geom,
-    ctx->d4est_quad,
-    ctx->d4est_factors
-  );
+/*   double norm_sq_local = d4est_ip_energy_norm_compute( */
+/*     ctx->p4est, */
+/*     field_value_errors, */
+/*     ctx->energy_norm_data, */
+/*     ctx->ghost, */
+/*     ctx->ghost_data, */
+/*     ctx->d4est_ops, */
+/*     ctx->d4est_geom, */
+/*     ctx->d4est_quad, */
+/*     ctx->d4est_factors */
+/*   ); */
 
-  // Reduce over all parallel processes
-  double norm_sq;
-  sc_reduce(
-    &norm_sq_local,
-    &norm_sq,
-    1,
-    sc_MPI_DOUBLE,
-    sc_MPI_SUM,
-    0,
-    sc_MPI_COMM_WORLD
-  );
+/*   // Reduce over all parallel processes */
+/*   double norm_sq; */
+/*   sc_reduce( */
+/*     &norm_sq_local, */
+/*     &norm_sq, */
+/*     1, */
+/*     sc_MPI_DOUBLE, */
+/*     sc_MPI_SUM, */
+/*     0, */
+/*     sc_MPI_COMM_WORLD */
+/*   ); */
 
-  // Need num_nodes for fit
-  /* int num_nodes; */
-  /* if (ctx->fit != NULL) { */
-  /*   sc_reduce( */
-  /*     &num_nodes_local, */
-  /*     &num_nodes, */
-  /*     1, */
-  /*     sc_MPI_INT, */
-  /*     sc_MPI_SUM, */
-  /*     0, */
-  /*     sc_MPI_COMM_WORLD */
-  /*   ); */
-  /* } */
-  
-  // Perform energy norm fit
-  /* if (ctx->fit != NULL && ctx->p4est->mpirank == 0) { */
-  /*   d4est_norms_fcn_energy_add_entry_and_fit( */
-  /*     ctx->p4est, */
-  /*     ctx->fit, */
-  /*     norm_sq, */
-  /*     num_nodes */
-  /*   ); */
-  /* } */
-
-  return sqrt(norm_sq);
-}
+/*   return sqrt(norm_sq); */
+/* } */
 
 /*
   Extracts the energy estimator from the context to save alongside norms.

@@ -456,10 +456,13 @@ d4est_poisson_flux_sipg_dirichlet
 
   for (int i = 0; i < volume_nodes_m; i++){
     for (int d = 0; d < (P4EST_DIM); d++){
-      e_m->Au_elem[i] += DT_lifted_VT_w_term2_lobatto[d][i];
+      boundary_data->Au_m[i] += DT_lifted_VT_w_term2_lobatto[d][i];
+      /* e_m->Au_elem[i] += DT_lifted_VT_w_term2_lobatto[d][i]; */
     }
-    e_m->Au_elem[i] += lifted_VT_w_term3_lobatto[i];
-    e_m->Au_elem[i] += lifted_VT_w_term1_lobatto[i];
+    /* e_m->Au_elem[i] += lifted_VT_w_term3_lobatto[i]; */
+    boundary_data->Au_m[i] +=  lifted_VT_w_term3_lobatto[i];
+    /* e_m->Au_elem[i] += lifted_VT_w_term1_lobatto[i]; */
+    boundary_data->Au_m[i] += lifted_VT_w_term1_lobatto[i];
   }
 
   
@@ -626,7 +629,7 @@ d4est_poisson_flux_sipg_robin
   
   int volume_nodes_m = d4est_lgl_get_nodes((P4EST_DIM), e_m->deg);
   for (int i = 0; i < volume_nodes_m; i++){
-    e_m->Au_elem[i] += lifted_VT_w_term1_lobatto[i];
+    boundary_data->Au_m[i] += lifted_VT_w_term1_lobatto[i];
   }
 
   P4EST_FREE(term1_quad);
@@ -1037,13 +1040,17 @@ d4est_poisson_flux_sipg_interface
   int stride = 0;
   for (int f = 0; f < faces_m; f++){
     int volume_nodes_m = d4est_lgl_get_nodes((P4EST_DIM), e_m[f]->deg);
-    if (e_m_is_ghost[f] == 0){     
+    if (e_m_is_ghost[f] == 0){    
+      
       for (int i = 0; i < volume_nodes_m; i++){
         for (int d = 0; d < (P4EST_DIM); d++){
-          e_m[f]->Au_elem[i] += DT_lifted_proj_VT_w_term2_mortar_lobatto[d][i + stride];
+          mortar_data->Au_m[f][i] +=  DT_lifted_proj_VT_w_term2_mortar_lobatto[d][i + stride];
+          /* e_m[f]->Au_elem[i] += DT_lifted_proj_VT_w_term2_mortar_lobatto[d][i + stride]; */
         }
-        e_m[f]->Au_elem[i] += lifted_proj_VT_w_term3_mortar_lobatto[i + stride];
-        e_m[f]->Au_elem[i] += lifted_proj_VT_w_term1_mortar_lobatto[i + stride];
+        /* e_m[f]->Au_elem[i] += lifted_proj_VT_w_term3_mortar_lobatto[i + stride]; */
+        mortar_data->Au_m[f][i] += lifted_proj_VT_w_term3_mortar_lobatto[i + stride];
+        /* e_m[f]->Au_elem[i] += lifted_proj_VT_w_term1_mortar_lobatto[i + stride]; */
+        mortar_data->Au_m[f][i] += lifted_proj_VT_w_term1_mortar_lobatto[i + stride];
       }
 
       /* printf("interface sipg face %d: ", f); */

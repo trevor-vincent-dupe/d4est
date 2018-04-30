@@ -16,8 +16,8 @@ void
  d4est_poisson_build_rhs_with_strong_bc
 (
  p4est_t* p4est,
- p4est_ghost_t* ghost,
- d4est_element_data_t* ghost_data,
+ d4est_ghost_t* ghost,
+ d4est_ghost_data_t* ghost_data,
  d4est_operators_t* d4est_ops,
  d4est_geometry_t* d4est_geom,
  d4est_quadrature_t* d4est_quad,
@@ -27,7 +27,8 @@ void
  double* rhs,
  d4est_xyz_fcn_t problem_rhs_fcn,
  d4est_mesh_init_field_option_t init_option,
- void* ctx
+ void* ctx,
+ int which_field
 )
 {
   int local_nodes = prob_vecs->local_nodes;
@@ -40,7 +41,8 @@ void
   elliptic_data_for_rhs.u = u_eq_0; 
   elliptic_data_for_rhs.Au = Au_eq_0; 
 
-  d4est_poisson_apply_aij(p4est, ghost, ghost_data, &elliptic_data_for_rhs, flux_fcn_data_for_build_rhs, d4est_ops, d4est_geom, d4est_quad, d4est_factors); 
+  
+  d4est_poisson_apply_aij(p4est, ghost, ghost_data, &elliptic_data_for_rhs, flux_fcn_data_for_build_rhs, d4est_ops, d4est_geom, d4est_quad, d4est_factors, which_field); 
 
 
   double* f = NULL;
@@ -146,7 +148,11 @@ d4est_poisson_apply_stiffness_matrix
  d4est_operators_t* d4est_ops,
  d4est_geometry_t* d4est_geom,
  d4est_quadrature_t* d4est_quad,
- d4est_mesh_data_t* d4est_factors
+ d4est_mesh_data_t* d4est_factors,
+ double* u,
+ double* Au,
+ int local_nodes,
+ int which_field
 )
 {
   for (p4est_topidx_t tt = p4est->first_local_tree;
@@ -190,12 +196,12 @@ d4est_poisson_apply_stiffness_matrix
            &mesh_vol,
            QUAD_OBJECT_VOLUME,
            QUAD_INTEGRAND_UNKNOWN,
-           &ed->u_elem[0],
+           &u[which_field*local_nodes + ed->nodal_stride],           
            ed->deg,
            J_quad,
            md_on_e.rst_xyz_quad,
            ed->deg_quad,
-           ed->Au_elem
+           &Au[which_field*local_nodes + ed->nodal_stride]
           );
       }
 
@@ -206,15 +212,18 @@ void
 d4est_poisson_compute_dudr
 (
  p4est_t* p4est,
- p4est_ghost_t* ghost,
- d4est_element_data_t* ghost_data,
+ d4est_ghost_t* d4est_ghost,
+ d4est_ghost_data_t* d4est_ghost_data,
  d4est_operators_t* d4est_ops,
  d4est_geometry_t* d4est_geom,
  d4est_quadrature_t* d4est_quad,
  d4est_mesh_data_t* d4est_factors,
- double* dudr [(P4EST_DIM)]
+ double* dudr_local [(P4EST_DIM)],
+ double* dudr_ghost [(P4EST_DIM)],
+ double* u,
+ int local_nodes,
+ int which_field
 ){
-
  int stride = 0;
  for (p4est_topidx_t tt = p4est->first_local_tree;
        tt <= p4est->last_local_tree;
@@ -228,25 +237,22 @@ d4est_poisson_compute_dudr
         d4est_element_data_t* ed = quad->p.user_data;         
         int volume_nodes_lobatto = d4est_lgl_get_nodes((P4EST_DIM),ed->deg);
         for (int i = 0; i < (P4EST_DIM); i++){
-          ed->dudr_elem[i] = &dudr[i][stride];
-          d4est_operators_apply_dij(d4est_ops, &ed->u_elem[0], (P4EST_DIM), ed->deg, i, &ed->dudr_elem[i][0]);
+          d4est_operators_apply_dij(d4est_ops, &u[which_field*local_nodes + ed->nodal_stride], (P4EST_DIM), ed->deg, i, &dudr_local[i][stride]);
         }
         stride += volume_nodes_lobatto;
       }
     }
 
-
-  for (int gid = 0; gid < ghost->ghosts.elem_count; gid++){
-    d4est_element_data_t* ged = &ghost_data[gid];
-    int volume_nodes_lobatto = d4est_lgl_get_nodes((P4EST_DIM),ged->deg);
-    for (int i = 0; i < (P4EST_DIM); i++){
-      ged->dudr_elem[i] = &dudr[i][stride];
-      d4est_operators_apply_dij(d4est_ops, &ged->u_elem[0], (P4EST_DIM), ged->deg, i, &ged->dudr_elem[i][0]);
-    }
-    stride += volume_nodes_lobatto;
-  }
-
- 
+ stride = 0;
+ for (int gid = 0; gid < d4est_ghost->ghost->ghosts.elem_count; gid++){
+   d4est_element_data_t* ged = &d4est_ghost->ghost_elements[gid];
+   int volume_nodes_lobatto = d4est_lgl_get_nodes((P4EST_DIM),ged->deg);
+   for (int i = 0; i < (P4EST_DIM); i++){
+     double* u_ghost_elem = d4est_ghost_data_get_field_on_element(ged,0,d4est_ghost_data);
+     d4est_operators_apply_dij(d4est_ops, u_ghost_elem, (P4EST_DIM), ged->deg, i, &dudr_ghost[i][stride]);
+   }
+   stride += volume_nodes_lobatto;
+ }
 }
 
 
@@ -254,8 +260,8 @@ void
 d4est_poisson_apply_mortar_matrices
 (
  p4est_t* p4est,
- p4est_ghost_t* ghost,
- d4est_element_data_t* ghost_data,
+ d4est_ghost_t* ghost,
+ /* d4est_ghost_data_t* ghost_data, */
  d4est_poisson_flux_data_t* flux_fcn_data,
  d4est_operators_t* d4est_ops,
  d4est_geometry_t* d4est_geom,
@@ -270,13 +276,13 @@ d4est_poisson_apply_mortar_matrices
     (
      p4est,
      ghost,
-     ghost_data,
+     /* ghost_data, */
      d4est_ops,
      d4est_geom,
      d4est_quad,
      d4est_factors,
-     &flux_fcns,
-     DO_NOT_EXCHANGE_GHOST_DATA /* already done above */
+     &flux_fcns
+     /* DO_NOT_EXCHANGE_GHOST_DATA /\* already done above *\/ */
     );
 }
 
@@ -287,23 +293,24 @@ void
 d4est_poisson_apply_aij
 (
  p4est_t* p4est,
- p4est_ghost_t* ghost,
- d4est_element_data_t* ghost_data,
- d4est_elliptic_data_t* prob_vecs,
+ d4est_ghost_t* d4est_ghost,
+ d4est_ghost_data_t* d4est_ghost_data,
+ d4est_elliptic_data_t* d4est_elliptic_data,
  d4est_poisson_flux_data_t* flux_fcn_data,
  d4est_operators_t* d4est_ops,
  d4est_geometry_t* d4est_geom,
  d4est_quadrature_t* d4est_quad,
- d4est_mesh_data_t* d4est_factors
+ d4est_mesh_data_t* d4est_factors,
+ int which_field
 )
 {
-  d4est_poisson_flux_init_element_data
-    (
-     p4est,
-     d4est_ops,
-     prob_vecs->u,
-     prob_vecs->Au
-    );
+  /* d4est_poisson_flux_init_element_data */
+  /*   ( */
+  /*    p4est, */
+  /*    d4est_ops, */
+  /*    d4est_elliptic_data->u, */
+  /*    d4est_elliptic_data->Au */
+  /*   ); */
   
   d4est_poisson_apply_stiffness_matrix
     (
@@ -311,35 +318,58 @@ d4est_poisson_apply_aij
      d4est_ops,
      d4est_geom,
      d4est_quad,
-     d4est_factors
+     d4est_factors,
+     d4est_elliptic_data->u,
+     d4est_elliptic_data->Au,
+     d4est_elliptic_data->local_nodes,
+     which_field
     );
 
 
-  p4est_ghost_exchange_data(p4est,ghost,ghost_data);
+  d4est_ghost_data_exchange(p4est,d4est_ghost,d4est_ghost_data,d4est_elliptic_data->u);
+  
+  /* p4est_ghost_exchange_data(p4est,ghost,ghost_data); */
 
-  int ghost_nodes = d4est_mesh_get_ghost_nodes(ghost, ghost_data);
-  double* dudr [(P4EST_DIM)]; D4EST_ALLOC_DIM_VEC(dudr,
-                                                  prob_vecs->local_nodes
-                                                  + ghost_nodes
-                                                 );
+  double* dudr_local [(P4EST_DIM)];
+  D4EST_ALLOC_DIM_VEC(dudr_local,d4est_elliptic_data->local_nodes);
+
+  int ghost_nodes = d4est_mesh_get_ghost_nodes(d4est_ghost);
+  double* dudr_ghost [(P4EST_DIM)];
+  D4EST_ALLOC_DIM_VEC(dudr_ghost, ghost_nodes);
   
   d4est_poisson_compute_dudr
     (
      p4est,
-     ghost,
-     ghost_data,
+     d4est_ghost,
+     d4est_ghost_data,
      d4est_ops,
      d4est_geom,
      d4est_quad,
      d4est_factors,
-     dudr
+     dudr_local,
+     dudr_ghost,
+     d4est_elliptic_data->u,
+     d4est_elliptic_data->local_nodes,
+     which_field
     );
 
+  flux_fcn_data->d4est_ghost_data = d4est_ghost_data;
+  flux_fcn_data->d4est_ghost = d4est_ghost;
+  flux_fcn_data->p4est = p4est;
+  flux_fcn_data->which_field = which_field;
+  flux_fcn_data->local_nodes = d4est_elliptic_data->local_nodes;
+  flux_fcn_data->u = d4est_elliptic_data->u;
+  flux_fcn_data->Au = d4est_elliptic_data->Au;
+  for (int i = 0; i < (P4EST_DIM); i++){
+    flux_fcn_data->dudr_local[i] = dudr_local[i];
+    flux_fcn_data->dudr_ghost[i] = dudr_ghost[i];
+  }
+  
   d4est_poisson_apply_mortar_matrices
     (
      p4est,
-     ghost,
-     ghost_data,
+     d4est_ghost,
+     /* d4est_ghost_data, */
      flux_fcn_data,
      d4est_ops,
      d4est_geom,
@@ -347,5 +377,6 @@ d4est_poisson_apply_aij
      d4est_factors
     );
 
-  D4EST_FREE_DIM_VEC(dudr);
+  D4EST_FREE_DIM_VEC(dudr_local);
+  D4EST_FREE_DIM_VEC(dudr_ghost);
 }

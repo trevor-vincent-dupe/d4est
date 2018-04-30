@@ -187,6 +187,7 @@
     }                                           \
   } while(0)
 
+
 #define D4EST_ALLOC_DBYD_MAT(a, size) D4EST_ALLOC_MAT(a, (P4EST_DIM), (P4EST_DIM), size);
 #define D4EST_COPY_DBYD_MAT(a, b) D4EST_COPY_MAT(a, b, (P4EST_DIM), (P4EST_DIM));
 #define D4EST_FREE_DBYD_MAT(a) D4EST_FREE_MAT(a, (P4EST_DIM), (P4EST_DIM));

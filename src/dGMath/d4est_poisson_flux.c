@@ -112,12 +112,12 @@ d4est_poisson_flux_boundary
 
   /* double* u = &e_m->u_elem[0]; */
   /* DEBUG_PRINT_ARR_DBL(u, d4est_lgl_get_nodes((P4EST_DIM), e_m->deg)); */
-  
   for (int d = 0; d < (P4EST_DIM); d++){
     d4est_operators_apply_slicer
       (
        d4est_ops,
-       e_m->dudr_elem[d],
+       /* e_m->dudr_elem[d], */
+       &d4est_poisson_flux_params->dudr_local[d][e_m->nodal_stride],
        (P4EST_DIM),
        f_m,
        e_m->deg,
@@ -142,7 +142,7 @@ d4est_poisson_flux_boundary
   d4est_operators_apply_slicer
     (
      d4est_ops,
-     e_m->u_elem,
+     &d4est_poisson_flux_params->u[e_m->nodal_stride],
      (P4EST_DIM),
      f_m,
      e_m->deg,
@@ -210,6 +210,17 @@ d4est_poisson_flux_boundary
   boundary_data.sj_on_f_m_quad = sj_on_f_m_quad;
   boundary_data.j_div_sj_quad = j_div_sj_on_f_m_quad;
 
+
+  boundary_data.Au_m =  d4est_mesh_get_field_on_element
+                         (
+                          d4est_poisson_flux_params->p4est,
+                          e_m,
+                          NULL,
+                          d4est_poisson_flux_params->Au,
+                          d4est_poisson_flux_params->local_nodes,
+                          d4est_poisson_flux_params->which_field
+                         );
+  
   D4EST_COPY_DBYD_MAT(drst_dxyz_quad, boundary_data.drst_dxyz_quad);
   D4EST_COPY_DIM_VEC(dudx_m_on_f_m_quad, boundary_data.dudx_m_on_f_m_quad);
   D4EST_COPY_DIM_VEC(n_on_f_m_quad, boundary_data.n_on_f_m_quad);
@@ -470,13 +481,26 @@ static void
   D4EST_ALLOC_DIM_VEC(dudr_m_on_f_m_mortar, total_nodes_mortar_quad);
   D4EST_ALLOC_DIM_VEC(dudr_m_on_f_m_mortar_quad, total_nodes_mortar_quad);
   D4EST_ALLOC_DIM_VEC(dudx_m_on_f_m_mortar_quad, total_nodes_mortar_quad);
- 
+
+  
   stride = 0;
   for (int i = 0; i < faces_m; i++){
+
+    
+    double* u_m = d4est_mesh_get_field_on_element
+                  (
+                   d4est_poisson_flux_params->p4est,
+                   e_m[i],
+                   d4est_poisson_flux_params->d4est_ghost_data,
+                   d4est_poisson_flux_params->u,
+                   d4est_poisson_flux_params->local_nodes,
+                   d4est_poisson_flux_params->which_field);
+    
     d4est_operators_apply_slicer
       (
        d4est_ops,
-       &(e_m[i]->u_elem[0]),
+       /* &(e_m[i]->u_elem[0]), */
+       u_m,
        (P4EST_DIM),
        f_m,
        e_m[i]->deg,
@@ -488,10 +512,21 @@ static void
  
   stride = 0;
   for (int i = 0; i < faces_p; i++){
+
+    double* u_p = d4est_mesh_get_field_on_element
+                  (
+                   d4est_poisson_flux_params->p4est,
+                   e_p_oriented[i],
+                   d4est_poisson_flux_params->d4est_ghost_data,
+                   d4est_poisson_flux_params->u,
+                   d4est_poisson_flux_params->local_nodes,
+                   d4est_poisson_flux_params->which_field);
+    
     d4est_operators_apply_slicer
       (
        d4est_ops,
-       &(e_p_oriented[i]->u_elem[0]),
+       /* &(e_p_oriented[i]->u_elem[0]), */
+       u_p,
        (P4EST_DIM),
        f_p,
        e_p_oriented[i]->deg,
@@ -577,12 +612,24 @@ static void
   /* For each component of the vector */
   for (int d = 0; d < (P4EST_DIM); d++){
 
+
+      
+    
     stride = 0;
     for (int f = 0; f < faces_m; f++){    
+      int is_it_ghost = d4est_mesh_is_it_a_ghost_element(d4est_poisson_flux_params->p4est,e_m[f]);
+      double* dudr_m [(P4EST_DIM)];
+      if (is_it_ghost){
+        D4EST_COPY_DIM_VEC(d4est_poisson_flux_params->dudr_ghost, dudr_m);
+      }
+      else{
+        D4EST_COPY_DIM_VEC(d4est_poisson_flux_params->dudr_local, dudr_m);
+      };
+
       d4est_operators_apply_slicer
         (
          d4est_ops,
-         &e_m[f]->dudr_elem[d][0],
+         &dudr_m[d][e_m[f]->nodal_stride],//&e_m[f]->dudr_elem[d][0],
          (P4EST_DIM),
          f_m,
          e_m[f]->deg,
@@ -593,10 +640,21 @@ static void
     
     stride = 0;
     for (int f = 0; f < faces_p; f++){
+
+      int is_it_ghost = d4est_mesh_is_it_a_ghost_element(d4est_poisson_flux_params->p4est,e_p[f]);
+      double* dudr_p [(P4EST_DIM)];
+
+      if (is_it_ghost){
+        D4EST_COPY_DIM_VEC(d4est_poisson_flux_params->dudr_ghost, dudr_p);
+      }
+      else{
+        D4EST_COPY_DIM_VEC(d4est_poisson_flux_params->dudr_local, dudr_p);
+      }
+      
       d4est_operators_apply_slicer
         (
          d4est_ops,
-         &e_p[f]->dudr_elem[d][0],
+         &dudr_p[d][e_p[f]->nodal_stride],//&e_p[f]->dudr_elem[d][0],
          (P4EST_DIM),
          f_p,
          e_p[f]->deg,
@@ -838,11 +896,27 @@ static void
   interface_data.face_nodes_m_lobatto = face_nodes_m_lobatto;
   interface_data.deg_p_lobatto = deg_p_lobatto;
   interface_data.face_nodes_p_lobatto = face_nodes_p_lobatto;
+
+
+  for (int i = 0; i < faces_m; i++){
+    int is_it_ghost = d4est_mesh_is_it_a_ghost_element(d4est_poisson_flux_params->p4est,e_m[i]);
+    interface_data.Au_m[i] = (is_it_ghost)
+                              ? NULL
+                              : d4est_mesh_get_field_on_element
+                              (
+                               d4est_poisson_flux_params->p4est,
+                               e_m[i],
+                               NULL,
+                               d4est_poisson_flux_params->Au,
+                               d4est_poisson_flux_params->local_nodes,
+                               d4est_poisson_flux_params->which_field
+                              );
+  }
+
   D4EST_COPY_DBYD_MAT(drst_dxyz_m_on_mortar_quad,interface_data.drst_dxyz_m_on_mortar_quad);
   D4EST_COPY_DIM_VEC(dudx_m_on_f_m_mortar_quad,interface_data.dudx_m_on_f_m_mortar_quad);
   D4EST_COPY_DIM_VEC(dudx_p_on_f_p_mortar_quad,interface_data.dudx_p_on_f_p_mortar_quad);
   D4EST_COPY_DIM_VEC(n_on_f_m_mortar_quad,interface_data.n_on_f_m_mortar_quad);
-  /* D4EST_COPY_DIM_VEC(n_sj_on_f_m_mortar_quad,interface_data.n_sj_on_f_m_mortar_quad); */
 
   if (d4est_poisson_flux_params->interface_fcn != NULL){
   d4est_poisson_flux_params->interface_fcn
@@ -867,14 +941,11 @@ static void
 
   }
 
-  /* P4EST_FREE(j_div_sj_on_f_m_mortar_quad); */
-  /* P4EST_FREE(j_div_sj_on_f_p_mortar_quad_porder); */
 #ifdef D4EST_H_EQ_J_DIV_SJ_QUAD
   P4EST_FREE(j_div_sj_on_f_p_mortar_quad);
 #endif
   P4EST_FREE(u_m_on_f_m);
   P4EST_FREE(u_p_on_f_p);
-  /* P4EST_FREE(sj_on_f_m_mortar_quad); */
   P4EST_FREE(tmp);  
   P4EST_FREE(u_m_on_f_m_mortar);
   P4EST_FREE(u_m_on_f_m_mortar_quad);
@@ -889,10 +960,6 @@ static void
   D4EST_FREE_DIM_VEC(dudr_m_on_f_m_mortar);
   D4EST_FREE_DIM_VEC(dudr_m_on_f_m_mortar_quad);
   D4EST_FREE_DIM_VEC(dudx_m_on_f_m_mortar_quad);
-  /* D4EST_FREE_DIM_VEC(n_on_f_m_mortar_quad); */
-  /* D4EST_FREE_DIM_VEC(n_sj_on_f_m_mortar_quad); */
-  /* D4EST_FREE_DBYD_MAT(drst_dxyz_m_on_mortar_quad); */
-  /* D4EST_FREE_DBYD_MAT(drst_dxyz_p_on_mortar_quad_porder); */
 }
 
 static
@@ -935,42 +1002,6 @@ d4est_poisson_flux_input
 
   D4EST_CHECK_INPUT("flux", input->flux_type, FLUX_NOT_SET); 
 }
-
-
-void
-d4est_poisson_flux_init_element_data
-(
- p4est_t* p4est,
- d4est_operators_t* d4est_ops,
- double* u,
- double* Au
-){
-
-  for (p4est_topidx_t tt = p4est->first_local_tree;
-       tt <= p4est->last_local_tree;
-       ++tt)
-    {
-      p4est_tree_t* tree = p4est_tree_array_index (p4est->trees, tt);
-      sc_array_t* tquadrants = &tree->quadrants;
-      int Q = (p4est_locidx_t) tquadrants->elem_count;
-      for (int q = 0; q < Q; ++q) {
-        p4est_quadrant_t* quad = p4est_quadrant_array_index (tquadrants, q);
-        d4est_element_data_t* ed = quad->p.user_data; 
-        int deg = ed->deg;
-        int volume_nodes_lobatto = d4est_lgl_get_nodes((P4EST_DIM),deg);
-
-        ed->Au_elem = &(Au[ed->nodal_stride]);
-  
-        d4est_util_copy_1st_to_2nd
-          (
-           &(u[ed->nodal_stride]),
-           &(ed->u_elem)[0],
-           volume_nodes_lobatto
-          );
-      }
-    }     
-}
-
 
 d4est_mortars_fcn_ptrs_t
 d4est_poisson_flux_fetch_fcns
