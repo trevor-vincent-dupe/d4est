@@ -139,19 +139,19 @@ int main(int argc, char *argv[])
                                );
   
   /* Solve Problem */
-  problem_init
-    (
-     p4est,
-     &ghost,
-     &ghost_data,
-     d4est_ops,
-     d4est_geom,
-     d4est_quad,
-     d4est_factors,
-     initial_grid_input,
-     (argc == 2) ? argv[1] : "options.input",
-     mpicomm
-    );
+  /* problem_init */
+  /*   ( */
+  /*    p4est, */
+  /*    &ghost, */
+  /*    &ghost_data, */
+  /*    d4est_ops, */
+  /*    d4est_geom, */
+  /*    d4est_quad, */
+  /*    d4est_factors, */
+  /*    initial_grid_input, */
+  /*    (argc == 2) ? argv[1] : "options.input", */
+  /*    mpicomm */
+  /*   ); */
 
   d4est_mesh_initial_extents_destroy(initial_grid_input);
   d4est_mesh_data_destroy(d4est_factors);
