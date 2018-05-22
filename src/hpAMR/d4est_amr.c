@@ -639,10 +639,11 @@ d4est_amr_step
   p4est->user_pointer = backup;
 
 
-  d4est_ghost_destroy(*d4est_ghost);
-  d4est_ghost_data_destroy(*d4est_ghost_data);
-  *d4est_ghost = d4est_ghost_init(p4est);
-  
+  /* d4est_ghost_destroy(*d4est_ghost); */
+  /* *d4est_ghost = NULL; */
+
+  /* *d4est_ghost = d4est_ghost_init(p4est); */
+  /* *d4est_ghost_data = NULL; */
   /* p4est_ghost_destroy(*ghost); */
   /* P4EST_FREE(*ghost_data); */
   /* *ghost = NULL; */

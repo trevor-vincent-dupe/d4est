@@ -130,6 +130,7 @@ d4est_ghost_data_destroy
   d4est_ghost_data->num_vecs = -1;
   
   D4EST_FREE(d4est_ghost_data);
+  d4est_ghost_data = NULL;
 }
 
 

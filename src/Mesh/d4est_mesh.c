@@ -1377,7 +1377,7 @@ d4est_mesh_local_sizes_t
 d4est_mesh_init_element_data
 (
  p4est_t* p4est,
- d4est_ghost_t* ghost,
+ /* d4est_ghost_t** ghost, */
  /* d4est_ghost_data_t* ghost_data, */
  d4est_operators_t* d4est_ops,
  d4est_geometry_t* d4est_geom,
@@ -1460,19 +1460,6 @@ d4est_mesh_init_element_data
   local_sizes.local_nodes_quad = local_nodes_quad;
   local_sizes.local_mortar_nodes_quad = 0.;
   local_sizes.local_boundary_nodes_quad = 0.;
-
-  if (ghost != NULL)
-    d4est_mesh_compute_mortar_quadrature_sizes
-      (
-       p4est,
-       ghost,
-       /* NULL, */
-       d4est_ops,
-       d4est_geom,
-       d4est_quad,
-       d4est_factors,
-       &local_sizes
-      );
   
   return local_sizes;
 }
@@ -1709,12 +1696,13 @@ int
 d4est_mesh_update
 (
  p4est_t* p4est,
- d4est_ghost_t* d4est_ghost,
+ d4est_ghost_t** d4est_ghost,
  /* void* ghost_data, */
  d4est_operators_t* d4est_ops,
  d4est_geometry_t* d4est_geom,
  d4est_quadrature_t* d4est_quad,
  d4est_mesh_data_t* d4est_factors,
+ d4est_mesh_ghost_init_option_t ghost_init_option,
  d4est_mesh_quadrature_data_init_option_t quad_init_option,
  d4est_mesh_geometry_data_init_option_t geom_init_option,
  d4est_mesh_geometry_aliases_init_option_t alias_init_option,
@@ -1724,7 +1712,7 @@ d4est_mesh_update
 {
   d4est_mesh_local_sizes_t local_sizes =
     d4est_mesh_init_element_data(p4est,
-                                 d4est_ghost,
+                                 /* d4est_ghost, */
                                  /* ghost_data, */
                                  d4est_ops,
                                  d4est_geom,
@@ -1734,6 +1722,28 @@ d4est_mesh_update
                                  user_ctx);
 
 
+  if (ghost_init_option == INITIALIZE_GHOST){
+    if (*d4est_ghost != NULL) {
+      d4est_ghost_destroy(*d4est_ghost);
+    }
+    *d4est_ghost = d4est_ghost_init(p4est);
+  }
+  
+
+  if (*d4est_ghost != NULL){
+    d4est_mesh_compute_mortar_quadrature_sizes
+      (
+       p4est,
+       *d4est_ghost,
+       /* NULL, */
+       d4est_ops,
+       d4est_geom,
+       d4est_quad,
+       d4est_factors,
+       &local_sizes
+      );
+  }
+  
   /* WILL BE DEPRECATED SOON */
   if (quad_init_option == INITIALIZE_QUADRATURE_DATA)
     {
@@ -1759,7 +1769,7 @@ d4est_mesh_update
       d4est_mesh_data_compute
         (
          p4est,
-         d4est_ghost,
+         *d4est_ghost,
          /* ghost_data, */
          d4est_ops,
          d4est_geom,
