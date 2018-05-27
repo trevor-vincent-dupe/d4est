@@ -112,6 +112,24 @@
   } while(0)
 
 
+#define DEBUG_PRINT_MPI_ARR_DBL_SUM(mpirank, a, n) do {    \
+    double sum = 0.;                                  \
+    for (int i = 0; i < n; i++) {                     \
+      sum += a[i];                                    \
+    }                                                 \
+    printf("%d: %s sum = %.25f\n",mpirank, #a, sum);   \
+  } while(0)
+
+
+
+#define DEBUG_PRINT_MPI_ARR_DBL_SUM_EXT(h,mpirank, a, n) do {   \
+    double sum = 0.;                                  \
+    for (int i = 0; i < n; i++) {                     \
+      sum += a[i];                                    \
+    }                                                 \
+    printf("%d: %s %s sum = %.25f\n", mpirank, h, #a, sum);       \
+  } while(0)
+
 
 
 #define D4EST_NOOP()                                                            \

@@ -140,7 +140,7 @@ problem_init
 
   for (int level = 0; level < d4est_amr->num_of_amr_steps + 1; level++) {
 
-    printf("Checkpoint 1\n");
+    //printf("Checkpoint 1\n");
     
     d4est_ghost_data_t* d4est_ghost_data = d4est_ghost_data_init(p4est,
                                                                  *d4est_ghost,
@@ -170,7 +170,7 @@ problem_init
     d4est_solver_cg_params_t fcg_params;
     d4est_solver_cg_input(p4est, input_file, "d4est_solver_cg", "[D4EST_SOLVER_CG]", &fcg_params);
 
-    printf("Checkpoint 2\n");
+    //printf("Checkpoint 2\n");
     
     d4est_solver_cg_solve
       (
@@ -251,7 +251,7 @@ problem_init
     P4EST_FREE(error_l2);
     P4EST_FREE(error);
     P4EST_FREE(u_analytic);
-    printf("Checkpoint 3\n");
+    //printf("Checkpoint 3\n");
 
     // Perform the next AMR step
   
@@ -275,7 +275,7 @@ problem_init
         zlog_info(c_default, "AMR refinement level %d of %d complete.", level + 1, d4est_amr->num_of_amr_steps);
     }
 
-    printf("Checkpoint 4\n");
+    //printf("Checkpoint 4\n");
     prob_vecs.local_nodes = d4est_mesh_update(
       p4est,
       d4est_ghost,
@@ -295,7 +295,7 @@ problem_init
     prob_vecs.rhs = P4EST_REALLOC(prob_vecs.rhs, double, prob_vecs.local_nodes);
     
 
-    printf("Checkpoint 5\n");
+    //printf("Checkpoint 5\n");
     if (d4est_ghost_data != NULL){
       d4est_ghost_data_destroy(d4est_ghost_data);
       d4est_ghost_data = NULL;

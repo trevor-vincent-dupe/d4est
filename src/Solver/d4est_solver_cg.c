@@ -126,7 +126,7 @@ void d4est_solver_cg_solve
      d4est_factors
     );
   
-  /* DEBUG_PRINT_2ARR_DBL(vecs->u, vecs->Au, vecs->local_nodes); */
+  /* DEBUG_PRINT_MPI_ARR_DBL_SUM(p4est->mpirank, vecs->Au, vecs->local_nodes); */
   
   d4est_util_copy_1st_to_2nd(Au, r, local_nodes);
 
@@ -139,7 +139,7 @@ void d4est_solver_cg_solve
   double d_dot_Au_global;
 
   sc_allreduce(&delta_new, &delta_new_global, 1, sc_MPI_DOUBLE, sc_MPI_SUM,
-               sc_MPI_COMM_WORLD);
+               p4est->mpicomm);
 
   delta_new = delta_new_global;
   delta_0 = delta_new;
@@ -165,7 +165,7 @@ void d4est_solver_cg_solve
     d_dot_Au = d4est_linalg_vec_dot(d, Au, local_nodes);
 
     sc_allreduce(&d_dot_Au, &d_dot_Au_global, 1, sc_MPI_DOUBLE, sc_MPI_SUM,
-                 sc_MPI_COMM_WORLD);
+                 p4est->mpicomm);
 
     d_dot_Au = d_dot_Au_global;
     alpha = delta_new / d_dot_Au;
@@ -179,7 +179,7 @@ void d4est_solver_cg_solve
     delta_new = d4est_linalg_vec_dot(r, r, local_nodes);
 
     sc_allreduce(&delta_new, &delta_new_global, 1, sc_MPI_DOUBLE, sc_MPI_SUM,
-                 sc_MPI_COMM_WORLD);
+                 p4est->mpicomm);
     delta_new = delta_new_global;
 
     beta = delta_new / delta_old;
