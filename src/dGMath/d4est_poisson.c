@@ -326,6 +326,7 @@ d4est_poisson_apply_aij
     );
 
 
+  
   d4est_ghost_data_exchange(p4est,d4est_ghost,d4est_ghost_data,d4est_elliptic_data->u);
   
   /* p4est_ghost_exchange_data(p4est,ghost,ghost_data); */
@@ -377,6 +378,9 @@ d4est_poisson_apply_aij
      d4est_factors
     );
 
+
+  /* DEBUG_PRINT_MPI_ARR_DBL_SUM(p4est->mpirank, d4est_elliptic_data->Au, d4est_elliptic_data->local_nodes); */
+  
   D4EST_FREE_DIM_VEC(dudr_local);
   D4EST_FREE_DIM_VEC(dudr_ghost);
 }

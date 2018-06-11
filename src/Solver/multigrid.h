@@ -150,8 +150,8 @@ typedef struct {
 
   multigrid_update_callback_fcn_t update;
   d4est_mesh_data_t** geometric_factors;
-  p4est_ghost_t** ghost;
-  d4est_element_data_t** ghost_data;
+  d4est_ghost_t** d4est_ghost;
+  d4est_ghost_data_t** d4est_ghost_data;
 
   /* alias to currently used geometric factors, points to an element of geometric_factors above */
   d4est_mesh_data_t* current_geometric_factors;

@@ -55,6 +55,7 @@ d4est_ghost_init
   for (int gid = 0; gid < d4est_ghost->ghost->ghosts.elem_count; gid++){
     d4est_element_data_t* ged = &d4est_ghost->ghost_elements[gid];
     int volume_nodes_lobatto = d4est_lgl_get_nodes((P4EST_DIM),ged->deg);
+    ged->id = gid;
     ged->nodal_stride = stride;
     ged->quad_stride = -1;
     ged->sqr_nodal_stride = -1;

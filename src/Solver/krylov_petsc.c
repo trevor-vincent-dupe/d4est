@@ -224,7 +224,7 @@ PetscErrorCode krylov_petsc_apply_aij( Mat A, Vec x, Vec y )
 
   /* d4est_elliptic_eqns_t* fcns = petsc_ctx->fcns; */
   p4est_t* p4est = petsc_ctx->p4est;
-  p4est_ghost_t* ghost = *petsc_ctx->ghost;
+  d4est_ghost_t* ghost = *petsc_ctx->ghost;
 
   d4est_elliptic_data_t vecs_for_aij;
   d4est_elliptic_data_copy_ptrs(petsc_ctx->vecs, &vecs_for_aij);
@@ -281,8 +281,8 @@ krylov_petsc_solve
  p4est_t* p4est,
  d4est_elliptic_data_t* vecs,
  d4est_elliptic_eqns_t* fcns,
- p4est_ghost_t** ghost,
- d4est_element_data_t** ghost_data,
+ d4est_ghost_t** ghost,
+ d4est_ghost_data_t** ghost_data,
  d4est_operators_t* d4est_ops,
  d4est_geometry_t* d4est_geom,
  d4est_quadrature_t* d4est_quad,

@@ -56,8 +56,8 @@ multigrid_bottom_solver_cg_d4est
 {
   multigrid_data_t* mg_data = p4est->user_pointer;
   multigrid_element_data_updater_t* updater = mg_data->elem_data_updater;
-  p4est_ghost_t* ghost = *(updater->ghost);
-  void* ghost_data = *(updater->ghost_data);
+  d4est_ghost_t* d4est_ghost = *(updater->d4est_ghost);
+  d4est_ghost_data_t* d4est_ghost_data = *(updater->d4est_ghost_data);
   d4est_geometry_t* d4est_geom = mg_data->d4est_geom;
   
   int local_nodes;
@@ -90,8 +90,8 @@ multigrid_bottom_solver_cg_d4est
   d4est_elliptic_eqns_apply_lhs
     (
      p4est,
-     ghost,
-     ghost_data,
+     d4est_ghost,
+     d4est_ghost_data,
      fcns,
      vecs,
      mg_data->d4est_ops,
@@ -132,8 +132,8 @@ multigrid_bottom_solver_cg_d4est
     d4est_elliptic_eqns_apply_lhs
       (
        p4est,
-       ghost,
-       ghost_data,
+       d4est_ghost,
+       d4est_ghost_data,
        fcns,
        vecs,
        mg_data->d4est_ops,

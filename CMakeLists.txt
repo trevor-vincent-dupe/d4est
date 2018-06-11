@@ -113,19 +113,19 @@ SET (
   src/Solver/d4est_solver_cg.c
   # src/Solver/d4est_solver_fcg.c
   # src/Solver/d4est_solver_newton.c
-  # src/Solver/krylov_petsc.c
+  src/Solver/krylov_petsc.c
   # src/Solver/newton_petsc.c
-  # src/Solver/krylov_pc_multigrid.c
-  # src/Solver/multigrid.c
-  # src/Solver/multigrid_bottom_solver_cg.c
-  # src/Solver/multigrid_bottom_solver_cheby.c
-  # src/Solver/multigrid_bottom_solver_krylov_petsc.c
-  # src/Solver/multigrid_element_data_updater.c
-  # src/Solver/multigrid_logger_residual.c
-  # src/Solver/multigrid_matrix_operator.c
-  # src/Solver/multigrid_smoother_cheby.c
-  # src/Solver/multigrid_smoother_krylov_petsc.c
-  # src/Solver/cg_eigs.c
+  src/Solver/krylov_pc_multigrid.c
+  src/Solver/multigrid.c
+  src/Solver/multigrid_bottom_solver_cg.c
+  src/Solver/multigrid_bottom_solver_cheby.c
+  src/Solver/multigrid_bottom_solver_krylov_petsc.c
+  src/Solver/multigrid_element_data_updater.c
+  src/Solver/multigrid_logger_residual.c
+  src/Solver/multigrid_matrix_operator.c
+  src/Solver/multigrid_smoother_cheby.c
+  src/Solver/multigrid_smoother_krylov_petsc.c
+  src/Solver/cg_eigs.c
   # src/Solver/d4est_solver_jacobian_tester.c
   # src/Solver/d4est_solver_test_symmetry.c
   )
@@ -309,7 +309,7 @@ add_d4est_bash_regression_test(d4est_test_poisson_sinx.sh Regression d4est_test_
 
 # add_d4est_problem_2d(stamm_driver stamm_multigrid_pc.c Stamm)
 add_d4est_problem_3d(poisson_sinx_uniform_driver poisson_sinx_uniform.c PoissonSinx)
-# add_d4est_problem_3d(poisson_sinx_multigrid_driver poisson_sinx_multigrid.c PoissonSinx)
+add_d4est_problem_3d(poisson_sinx_multigrid_driver poisson_sinx_multigrid.c PoissonSinx)
 # add_d4est_problem_3d(poisson_exp1or_uniform_driver poisson_exp1or_uniform.c PoissonExp1oR)
 # add_d4est_problem_3d(constant_density_star_driver constant_density_star_mgpc_newton_petsc.c ConstantDensityStar)
 # add_d4est_problem_3d(constant_density_star_robin_driver constant_density_star_robin.c ConstantDensityStar)

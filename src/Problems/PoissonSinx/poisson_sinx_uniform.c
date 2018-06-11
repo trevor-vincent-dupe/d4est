@@ -140,14 +140,11 @@ problem_init
 
   for (int level = 0; level < d4est_amr->num_of_amr_steps + 1; level++) {
 
-    //printf("Checkpoint 1\n");
-    
     d4est_ghost_data_t* d4est_ghost_data = d4est_ghost_data_init(p4est,
                                                                  *d4est_ghost,
                                                                  &field_type,
                                                                  1);
   
-    
     
     d4est_poisson_build_rhs_with_strong_bc(
       p4est,
@@ -172,21 +169,40 @@ problem_init
 
     //printf("Checkpoint 2\n");
     
-    d4est_solver_cg_solve
-      (
-       p4est,
-       &prob_vecs,
-       &prob_fcns,
-       d4est_ghost,
-       &d4est_ghost_data,
-       d4est_ops,
-       d4est_geom,
-       d4est_quad,
-       d4est_factors,
-       &fcg_params,
-       NULL/* pc */
-      );
+    /* d4est_solver_cg_solve */
+    /*   ( */
+    /*    p4est, */
+    /*    &prob_vecs, */
+    /*    &prob_fcns, */
+    /*    d4est_ghost, */
+    /*    &d4est_ghost_data, */
+    /*    d4est_ops, */
+    /*    d4est_geom, */
+    /*    d4est_quad, */
+    /*    d4est_factors, */
+    /*    &fcg_params, */
+    /*    NULL/\* pc *\/ */
+    /*   ); */
 
+
+    krylov_petsc_params_t krylov_petsc_params;
+    krylov_petsc_input(p4est, input_file, "krylov_petsc", &krylov_petsc_params);
+    
+    krylov_petsc_solve(
+      p4est,
+      &prob_vecs,
+      &prob_fcns,
+      d4est_ghost,
+      &d4est_ghost_data,
+      d4est_ops,
+      d4est_geom,
+      d4est_quad,
+      d4est_factors,
+      &krylov_petsc_params,
+      NULL//(mg_data->num_of_levels == 1) ? NULL : pc
+    );
+
+    
     // Compute and save mesh data to a VTK file
     
     // Compute analytical field values
@@ -294,8 +310,6 @@ problem_init
     prob_vecs.Au = P4EST_REALLOC(prob_vecs.Au, double, prob_vecs.local_nodes);
     prob_vecs.rhs = P4EST_REALLOC(prob_vecs.rhs, double, prob_vecs.local_nodes);
     
-
-    //printf("Checkpoint 5\n");
     if (d4est_ghost_data != NULL){
       d4est_ghost_data_destroy(d4est_ghost_data);
       d4est_ghost_data = NULL;

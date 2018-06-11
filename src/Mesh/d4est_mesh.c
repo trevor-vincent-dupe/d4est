@@ -1723,14 +1723,14 @@ d4est_mesh_update
 
 
   if (ghost_init_option == INITIALIZE_GHOST){
-    if (*d4est_ghost != NULL) {
+    if (d4est_ghost != NULL && *d4est_ghost != NULL) {
       d4est_ghost_destroy(*d4est_ghost);
     }
     *d4est_ghost = d4est_ghost_init(p4est);
   }
   
 
-  if (*d4est_ghost != NULL){
+  if (d4est_ghost != NULL && *d4est_ghost != NULL){
     d4est_mesh_compute_mortar_quadrature_sizes
       (
        p4est,
