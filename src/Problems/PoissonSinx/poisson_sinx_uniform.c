@@ -168,39 +168,42 @@ problem_init
     d4est_solver_cg_input(p4est, input_file, "d4est_solver_cg", "[D4EST_SOLVER_CG]", &fcg_params);
 
     //printf("Checkpoint 2\n");
-    
-    /* d4est_solver_cg_solve */
-    /*   ( */
-    /*    p4est, */
-    /*    &prob_vecs, */
-    /*    &prob_fcns, */
-    /*    d4est_ghost, */
-    /*    &d4est_ghost_data, */
-    /*    d4est_ops, */
-    /*    d4est_geom, */
-    /*    d4est_quad, */
-    /*    d4est_factors, */
-    /*    &fcg_params, */
-    /*    NULL/\* pc *\/ */
-    /*   ); */
+    /*  */
 
 
-    krylov_petsc_params_t krylov_petsc_params;
-    krylov_petsc_input(p4est, input_file, "krylov_petsc", &krylov_petsc_params);
     
-    krylov_petsc_solve(
-      p4est,
-      &prob_vecs,
-      &prob_fcns,
-      d4est_ghost,
-      &d4est_ghost_data,
-      d4est_ops,
-      d4est_geom,
-      d4est_quad,
-      d4est_factors,
-      &krylov_petsc_params,
-      NULL//(mg_data->num_of_levels == 1) ? NULL : pc
-    );
+    d4est_solver_cg_solve
+      (
+       p4est,
+       &prob_vecs,
+       &prob_fcns,
+       d4est_ghost,
+       &d4est_ghost_data,
+       d4est_ops,
+       d4est_geom,
+       d4est_quad,
+       d4est_factors,
+       &fcg_params,
+       NULL/* pc */
+      );
+
+
+    /* krylov_petsc_params_t krylov_petsc_params; */
+    /* krylov_petsc_input(p4est, input_file, "krylov_petsc", &krylov_petsc_params); */
+    
+    /* krylov_petsc_solve( */
+    /*   p4est, */
+    /*   &prob_vecs, */
+    /*   &prob_fcns, */
+    /*   d4est_ghost, */
+    /*   &d4est_ghost_data, */
+    /*   d4est_ops, */
+    /*   d4est_geom, */
+    /*   d4est_quad, */
+    /*   d4est_factors, */
+    /*   &krylov_petsc_params, */
+    /*   NULL//(mg_data->num_of_levels == 1) ? NULL : pc */
+    /* ); */
 
     
     // Compute and save mesh data to a VTK file

@@ -78,7 +78,7 @@ SET (
   src/Kron/d4est_kron.c
   src/dGMath/d4est_operators.c
   src/dGMath/d4est_gradient.c
-  # src/dGMath/d4est_ip_energy_norm.c
+  src/dGMath/d4est_ip_energy_norm.c
   src/dGMath/d4est_lgl.c
   src/dGMath/d4est_reference.c
   src/dGMath/d4est_poisson.c
@@ -86,8 +86,8 @@ SET (
   src/dGMath/d4est_poisson_flux_sipg.c
   src/Geometry/d4est_geometry_brick.c
   src/Geometry/d4est_geometry.c
-  # src/Estimators/d4est_estimator_stats.c
-  # src/Estimators/d4est_estimator_bi.c
+  src/Estimators/d4est_estimator_stats.c
+  src/Estimators/d4est_estimator_bi.c
   # src/Estimators/d4est_estimator_residual.c
   src/hpAMR/d4est_amr.c
   src/hpAMR/d4est_amr_uniform.c
@@ -114,7 +114,7 @@ SET (
   # src/Solver/d4est_solver_fcg.c
   # src/Solver/d4est_solver_newton.c
   src/Solver/krylov_petsc.c
-  # src/Solver/newton_petsc.c
+  src/Solver/newton_petsc.c
   src/Solver/krylov_pc_multigrid.c
   src/Solver/multigrid.c
   src/Solver/multigrid_bottom_solver_cg.c
@@ -295,22 +295,22 @@ enable_testing()
 set(CTEST_MEMORYCHECK_COMMAND /usr/bin/valgrind)
 set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full --suppressions=${PROJECT_SOURCE_DIR}/suppressions.txt" )
 
-# add_d4est_unit_test_3d(test_d4est_vtk test_d4est_vtk.c Unit test_d4est_vtk)
+add_d4est_unit_test_3d(test_d4est_vtk test_d4est_vtk.c Unit test_d4est_vtk)
 add_d4est_unit_test_3d(test_d4est_operators test_d4est_operators.c Unit test_d4est_operators)
 add_d4est_unit_test_3d(test_d4est_kron test_d4est_kron.c Unit test_d4est_kron)
 add_d4est_unit_test_3d(test_d4est_linalg test_d4est_linalg.c Unit test_d4est_linalg)
-# add_d4est_unit_test_3d(test_d4est_ghost_data test_d4est_ghost_data.c Unit test_d4est_ghost_data)
+add_d4est_unit_test_3d(test_d4est_ghost_data test_d4est_ghost_data.c Unit test_d4est_ghost_data)
 
-# add_d4est_bash_regression_test(d4est_test_stamm.sh Regression d4est_test_stamm)
-# add_d4est_bash_regression_test(d4est_test_cds.sh Regression d4est_test_constant_density_star)
+add_d4est_bash_regression_test(d4est_test_stamm.sh Regression d4est_test_stamm)
+add_d4est_bash_regression_test(d4est_test_cds.sh Regression d4est_test_constant_density_star)
 add_d4est_bash_regression_test(d4est_test_poisson_sinx.sh Regression d4est_test_poisson_sinx)
-# add_d4est_bash_regression_test(d4est_test_twopunctures.sh Regression d4est_test_twopunctures)
-# add_d4est_bash_regression_test(d4est_test_mpi.sh Regression d4est_test_mpi)
+add_d4est_bash_regression_test(d4est_test_twopunctures.sh Regression d4est_test_twopunctures)
+add_d4est_bash_regression_test(d4est_test_mpi.sh Regression d4est_test_mpi)
 
-# add_d4est_problem_2d(stamm_driver stamm_multigrid_pc.c Stamm)
+add_d4est_problem_2d(stamm_driver stamm_multigrid_pc.c Stamm)
 add_d4est_problem_3d(poisson_sinx_uniform_driver poisson_sinx_uniform.c PoissonSinx)
 add_d4est_problem_3d(poisson_sinx_multigrid_driver poisson_sinx_multigrid.c PoissonSinx)
 # add_d4est_problem_3d(poisson_exp1or_uniform_driver poisson_exp1or_uniform.c PoissonExp1oR)
-# add_d4est_problem_3d(constant_density_star_driver constant_density_star_mgpc_newton_petsc.c ConstantDensityStar)
+add_d4est_problem_3d(constant_density_star_driver constant_density_star_mgpc_newton_petsc.c ConstantDensityStar)
 # add_d4est_problem_3d(constant_density_star_robin_driver constant_density_star_robin.c ConstantDensityStar)
-# add_d4est_problem_3d(two_punctures_robin_diff_geom_estimator_global_driver two_punctures_cactus_diff_geom_estimator_global.c TwoPunctures)
+add_d4est_problem_3d(two_punctures_robin_diff_geom_estimator_global_driver two_punctures_cactus_diff_geom_estimator_global.c TwoPunctures)

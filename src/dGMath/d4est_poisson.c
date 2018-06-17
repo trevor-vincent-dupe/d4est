@@ -44,6 +44,9 @@ void
   
   d4est_poisson_apply_aij(p4est, ghost, ghost_data, &elliptic_data_for_rhs, flux_fcn_data_for_build_rhs, d4est_ops, d4est_geom, d4est_quad, d4est_factors, which_field); 
 
+  
+
+
 
   double* f = NULL;
   if (init_option == INIT_FIELD_ON_LOBATTO){
@@ -135,7 +138,15 @@ void
       }
     }
 
-  d4est_linalg_vec_axpy(-1., Au_eq_0, rhs, local_nodes);  
+  /* DEBUG_PRINT_ARR_DBL_SUM(Au_eq_0, local_nodes); */
+  /* DEBUG_PRINT_ARR_DBL_SUM(rhs, local_nodes); */
+
+  /* for (int i = 0; i < local_nodes; i++){ */
+    /* Au_eq_0[i] = 0.; */
+  /* } */
+  
+  d4est_linalg_vec_axpy(-1., Au_eq_0, rhs, local_nodes);
+  /* DEBUG_PRINT_ARR_DBL_SUM(rhs, local_nodes); */
   P4EST_FREE(u_eq_0);
   P4EST_FREE(Au_eq_0);
   P4EST_FREE(f);
@@ -365,6 +376,9 @@ d4est_poisson_apply_aij
     flux_fcn_data->dudr_local[i] = dudr_local[i];
     flux_fcn_data->dudr_ghost[i] = dudr_ghost[i];
   }
+
+
+  /* DEBUG_PRINT_MPI_ARR_DBL_SUM(p4est->mpirank, d4est_elliptic_data->Au, d4est_elliptic_data->local_nodes); */
   
   d4est_poisson_apply_mortar_matrices
     (
